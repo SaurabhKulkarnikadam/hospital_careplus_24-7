@@ -149,6 +149,63 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/DS_postgre')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_PostgreSql",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "PostgreSqlV2Table",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_PostgreSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_adlsgen2')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLSgen2",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"folder": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"folderPath": {
+							"value": "@dataset().folder",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLSgen2')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/source_silver_inner')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
@@ -157,8 +214,6 @@
 					{
 						"name": "fetch tables deatils",
 						"type": "Lookup",
-						"state": "Inactive",
-						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [],
 						"policy": {
 							"timeout": "0.12:00:00",
@@ -201,6 +256,80 @@
 								"type": "Expression"
 							}
 						}
+					},
+					{
+						"name": "copy data from source to landing",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "fetch tables deatils",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "Set start time",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "PostgreSqlV2Source",
+								"query": {
+									"value": "SELECT * FROM PUBLIC.@{activity('fetch tables deatils').output.firstRow.source_table_name};",
+									"type": "Expression"
+								},
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "ParquetSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "ParquetWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_postgre",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "DS_adlsgen2",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": "landing",
+									"folder": {
+										"value": "@concat(\n    activity('fetch tables deatils').output.firstRow.source_system,\n    '/',\n    activity('fetch tables deatils').output.firstRow.source_table_name,\n    '/',\n    variables('set_time'))",
+										"type": "Expression"
+									}
+								}
+							}
+						]
 					}
 				],
 				"policy": {
@@ -220,7 +349,9 @@
 				"annotations": []
 			},
 			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/DS_sqldb')]"
+				"[concat(variables('factoryId'), '/datasets/DS_sqldb')]",
+				"[concat(variables('factoryId'), '/datasets/DS_postgre')]",
+				"[concat(variables('factoryId'), '/datasets/DS_adlsgen2')]"
 			]
 		},
 		{
