@@ -1,0 +1,48 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "careplusadffactory"
+		},
+		"LS_ADLSgen2_accountKey": {
+			"value": ""
+		},
+		"LS_PostgreSql_password": {
+			"value": ""
+		},
+		"LS_sqldb_password": {
+			"value": ""
+		},
+		"LS_ADLSgen2_properties_typeProperties_url": {
+			"value": "https://careplusstorageaccount.dfs.core.windows.net/"
+		},
+		"LS_PostgreSql_properties_typeProperties_server": {
+			"value": "ep-curly-sound-aocyxrqu-pooler.c-2.ap-southeast-1.aws.neon.tech"
+		},
+		"LS_PostgreSql_properties_typeProperties_database": {
+			"value": "neondb"
+		},
+		"LS_PostgreSql_properties_typeProperties_username": {
+			"value": "neondb_owner"
+		},
+		"LS_azureKeyValut_properties_typeProperties_baseUrl": {
+			"value": "https://carepluskelvault.vault.azure.net/"
+		},
+		"LS_sqldb_properties_typeProperties_server": {
+			"value": "careplus.database.windows.net"
+		},
+		"LS_sqldb_properties_typeProperties_database": {
+			"value": "care_plus_hospital"
+		},
+		"LS_sqldb_properties_typeProperties_userName": {
+			"value": "careplus"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
