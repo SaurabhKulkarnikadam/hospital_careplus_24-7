@@ -75,6 +75,10 @@
 									"table_id": {
 										"value": "@item().table_id",
 										"type": "Expression"
+									},
+									"adf_run_id": {
+										"value": "@pipeline().parameters.adf_run_id",
+										"type": "Expression"
 									}
 								}
 							}
@@ -109,13 +113,13 @@
 							}
 						},
 						{
-							"name": "script-insert in progress_copy1",
+							"name": "update failed status",
 							"type": "Script",
 							"dependsOn": [
 								{
 									"activity": "ingest from source to silver",
 									"dependencyConditions": [
-										"Succeeded"
+										"Failed"
 									]
 								}
 							],
