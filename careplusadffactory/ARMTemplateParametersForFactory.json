@@ -14,6 +14,9 @@
 		"LS_sqldb_password": {
 			"value": ""
 		},
+		"LS_AzureDatabricks_accessToken": {
+			"value": ""
+		},
 		"LS_ADLSgen2_properties_typeProperties_url": {
 			"value": "https://careplusstorageaccount.dfs.core.windows.net/"
 		},
@@ -37,6 +40,9 @@
 		},
 		"LS_sqldb_properties_typeProperties_userName": {
 			"value": "careplus"
+		},
+		"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"value": "1015-154032-cx2gmeua"
 		}
 	}
 }

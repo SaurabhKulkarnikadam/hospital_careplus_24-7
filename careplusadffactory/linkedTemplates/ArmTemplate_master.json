@@ -19,6 +19,10 @@
 			"type": "secureString",
 			"metadata": "Secure string for 'password' of 'LS_sqldb'"
 		},
+		"LS_AzureDatabricks_accessToken": {
+			"type": "secureString",
+			"metadata": "Secure string for 'accessToken' of 'LS_AzureDatabricks'"
+		},
 		"LS_ADLSgen2_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://careplusstorageaccount.dfs.core.windows.net/"
@@ -50,6 +54,10 @@
 		"LS_sqldb_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "careplus"
+		},
+		"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1015-154032-cx2gmeua"
 		},
 		"containerUri": {
 			"type": "string",
@@ -87,6 +95,9 @@
 					"LS_sqldb_password": {
 						"value": "[parameters('LS_sqldb_password')]"
 					},
+					"LS_AzureDatabricks_accessToken": {
+						"value": "[parameters('LS_AzureDatabricks_accessToken')]"
+					},
 					"LS_ADLSgen2_properties_typeProperties_url": {
 						"value": "[parameters('LS_ADLSgen2_properties_typeProperties_url')]"
 					},
@@ -110,6 +121,9 @@
 					},
 					"LS_sqldb_properties_typeProperties_userName": {
 						"value": "[parameters('LS_sqldb_properties_typeProperties_userName')]"
+					},
+					"LS_AzureDatabricks_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('LS_AzureDatabricks_properties_typeProperties_existingClusterId')]"
 					}
 				}
 			},
