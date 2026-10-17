@@ -186,7 +186,7 @@
 							"type": "Expression"
 						},
 						"merge_key": {
-							"value": "@coalesce(activity('fetch tables deatils').output.firstRow.merge_key,'')",
+							"value": "@coalesce(activity('fetch tables deatils').output.firstRow.merge_keys,'')",
 							"type": "Expression"
 						},
 						"lode_type": {
