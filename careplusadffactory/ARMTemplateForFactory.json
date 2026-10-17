@@ -139,7 +139,7 @@
 							"source": {
 								"type": "PostgreSqlV2Source",
 								"query": {
-									"value": "\n@concat(\n    'SELECT * FROM [PUBLIC].[', activity('fetch tables deatils').output.firstRow.source_table_name, ']',\n    if(\n        equals(activity('fetch tables deatils').output.firstRow.load_type, 'FULL'),\n        '',\n        concat(\n            ' WHERE ', activity('fetch tables deatils').output.firstRow.watermark_column,\n            ' > ''', variables('watermark_value'), ''''\n        )\n    )\n)\n",
+									"value": "@concat(\n    'SELECT * FROM PUBLIC.',\n    activity('fetch tables deatils').output.firstRow.source_table_name,\n    if(\n        equals(activity('fetch tables deatils').output.firstRow.load_type, 'FULL'),\n        '',\n        concat(\n            ' WHERE ',\n            activity('fetch tables deatils').output.firstRow.watermark_column,\n            ' > ',\n            '''',\n            variables('watermark_value'),\n            ''''\n        )\n    )\n)",
 									"type": "Expression"
 								},
 								"queryTimeout": "02:00:00"
@@ -253,6 +253,14 @@
 								},
 								"landing_timestamp": {
 									"value": "@variables('set_time')",
+									"type": "Expression"
+								},
+								"merge_key": {
+									"value": "@coalesce(activity('fetch tables deatils').output.firstRow.merge_keys,'')",
+									"type": "Expression"
+								},
+								"lode_type": {
+									"value": "@activity('fetch tables deatils').output.firstRow.load_type",
 									"type": "Expression"
 								}
 							}
@@ -377,6 +385,56 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "If Condition1",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "bronze to silver",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@not(equals(activity('fetch tables deatils').output.firstRow.load_type, 'FULL' ))",
+								"type": "Expression"
+							},
+							"ifTrueActivities": [
+								{
+									"name": "update watermark",
+									"type": "Script",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"linkedServiceName": {
+										"referenceName": "LS_sqldb",
+										"type": "LinkedServiceReference"
+									},
+									"typeProperties": {
+										"scripts": [
+											{
+												"type": "Query",
+												"text": {
+													"value": "update ctrl.watermark\nset watermark_value = sysutcdatetime()\nwhere table_id=@{pipeline().parameters.table_id};",
+													"type": "Expression"
+												}
+											}
+										],
+										"scriptBlockExecutionTimeout": "02:00:00"
+									}
+								}
+							]
+						}
 					}
 				],
 				"policy": {
@@ -389,7 +447,7 @@
 					},
 					"adf_run_id": {
 						"type": "string",
-						"defaultValue": "a1"
+						"defaultValue": "a4"
 					}
 				},
 				"variables": {
@@ -519,7 +577,7 @@
 											{
 												"type": "Query",
 												"text": {
-													"value": "INSERT INTO ctrl.audit_log\n    (adf_run_id, table_id, stage, status, start_time)\nVALUES\n    ('@{pipeline().parameters.adf_run_id}', @{item().table_id}, 'SOURCE_TO_SILVER', 'IN_PROGRESS', SYSUTCDATETIME());\nGO",
+													"value": "@concat(\n    'INSERT INTO ctrl.audit_log ',\n    '(adf_run_id, table_id, stage, status, start_time) VALUES (''',\n    pipeline().parameters.adf_run_id,\n    ''', ',\n    string(item().table_id),\n    ', ''SOURCE_TO_SILVER'', ''IN_PROGRESS'', SYSUTCDATETIME())'\n)",
 													"type": "Expression"
 												}
 											}
@@ -555,7 +613,7 @@
 											{
 												"type": "Query",
 												"text": {
-													"value": "update ctrl.audit_log\nset status = 'FAILED', end_time = SYSUTCDATETIME\nwhere adf_run_id = @{pipeline().parameters.adf_run_id} and \n table_id = @{item().table_id}",
+													"value": "@concat(\n    'UPDATE ctrl.audit_log ',\n    'SET status = ''FAILED'', ',\n    'end_time = SYSUTCDATETIME() ',\n    'WHERE adf_run_id = ''',\n    pipeline().parameters.adf_run_id,\n    ''' AND table_id = ',\n    string(item().table_id)\n)",
 													"type": "Expression"
 												}
 											}
@@ -577,7 +635,7 @@
 					},
 					"adf_run_id": {
 						"type": "string",
-						"defaultValue": "a2"
+						"defaultValue": "a5"
 					}
 				},
 				"variables": {
