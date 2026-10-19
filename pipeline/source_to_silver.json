@@ -33,6 +33,7 @@
 			},
 			{
 				"name": "ForEach1",
+				"description": "retrving the data ine by one",
 				"type": "ForEach",
 				"dependsOn": [
 					{
